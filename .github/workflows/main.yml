@@ -1,0 +1,35 @@
+name: Meetup WebScraping
+
+on:
+  push:
+    branches: [ main ]
+    
+  schedule: 
+   # Cada 5 minutos. Igual ni funciona 🤷‍♂️
+   - cron: '*/5 * * * *' 
+   
+  repository_dispatch:
+    types: [TokenRefresher-Dispatch]
+     
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+   
+  job:
+    name: Run Action
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    
+    - name: Copy AivenWeb Packages
+      run: cp -r offline-packages src/packages
+
+    - name: Run Console
+      run: dotnet run -c Release --project src/TokenRefresher/TokenRefresher.csproj -- -gh-token ${{ secrets.GHToken }} -meetup-apikey ${{ secrets.MeetupApiKey }} -meetup-apisecret ${{ secrets.MeetupApiSecret }}
+
