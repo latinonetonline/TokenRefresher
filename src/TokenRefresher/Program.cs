@@ -59,6 +59,8 @@ namespace TokenRefresher
 
         static async Task RefreshTokenMeetupAsync(IGitHubService gitHubService, GitHubActionContext actionContext)
         {
+            Console.WriteLine("Refresh Token Meetup");
+
             string meetupApiKey = actionContext.GetParameter(Parameters.MeetupApiKey);
             string meetupApiSecret = actionContext.GetParameter(Parameters.MeetupApiSecret);
 
@@ -70,7 +72,7 @@ namespace TokenRefresher
 
             Token token = JsonSerializer.Deserialize<Token>(file.Content, _jsonOptions);
 
-
+            Console.WriteLine("Get Token Successfully");
 
             HttpClient.BaseAddress = new Uri("https://secure.meetup.com");
             var request = new HttpRequestMessage(HttpMethod.Post, "/oauth2/access");
@@ -89,10 +91,12 @@ namespace TokenRefresher
 
             token = await response.Content.ReadFromJsonAsync<Token>();
 
-
+            Console.WriteLine("Refresh Token Successfully");
 
 
             await gitHubService.UpdateFileAsync(REPOSITORY_ID, path, fileName, JsonSerializer.Serialize(token, _jsonOptions));
+
+            Console.WriteLine("Updated Token in meetup.json Successfully");
 
 
         }
