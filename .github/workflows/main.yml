@@ -4,9 +4,8 @@ on:
   push:
     branches: [ main ]
     
-  schedule: 
-   # Cada 5 minutos. Igual ni funciona 🤷‍♂️
-   - cron: '*/5 * * * *' 
+  #schedule: 
+   #- cron: '*/30 * * * *' 
    
   repository_dispatch:
     types: [TokenRefresher-Dispatch]
