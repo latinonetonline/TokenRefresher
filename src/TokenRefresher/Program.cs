@@ -99,8 +99,7 @@ namespace TokenRefresher
 
             Console.WriteLine("Get Token Successfully");
 
-            HttpClient.BaseAddress = new Uri("https://secure.meetup.com");
-            var request = new HttpRequestMessage(HttpMethod.Post, "/oauth2/access");
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://secure.meetup.com/oauth2/access");
 
             var keyValues = new List<KeyValuePair<string, string>>
             {
@@ -142,8 +141,7 @@ namespace TokenRefresher
 
             Console.WriteLine("Get Token Successfully");
 
-            HttpClient.BaseAddress = new Uri("https://oauth2.googleapis.com");
-            var request = new HttpRequestMessage(HttpMethod.Post, "/token");
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token");
 
             var keyValues = new List<KeyValuePair<string, string>>
             {
