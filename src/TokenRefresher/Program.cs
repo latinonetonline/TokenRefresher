@@ -65,17 +65,24 @@ namespace TokenRefresher
             {
                 await RefreshTokenMeetupAsync(gitHubService, actionContext);
             }
-            finally
+            catch (Exception ex)
             {
-
+                Console.WriteLine("Hubo un error: " + Environment.NewLine + JsonSerializer.Serialize(ex, options: new()
+                {
+                    WriteIndented = true
+                }));
             }
 
             try
             {
                 await RefreshTokenGoogleAsync(gitHubService, actionContext);
             }
-            finally
+            catch(Exception ex)
             {
+                Console.WriteLine("Hubo un error: " + Environment.NewLine + JsonSerializer.Serialize(ex, options: new()
+                {
+                    WriteIndented = true
+                }));
             }
 
             
