@@ -31,5 +31,5 @@ jobs:
       run: cp -r offline-packages src/packages
 
     - name: Run Console
-      run: dotnet run -c Release --project src/TokenRefresher/TokenRefresher.csproj -- -gh-token ${{ secrets.GHToken }} -meetup-apikey ${{ secrets.MeetupApiKey }} -meetup-apisecret ${{ secrets.MeetupApiSecret }}
+      run: dotnet run -c Release --project src/TokenRefresher/TokenRefresher.csproj -- -gh-token ${{ secrets.GHToken }} -meetup-apikey ${{ secrets.MeetupApiKey }} -meetup-apisecret ${{ secrets.MeetupApiSecret }} -google-clientid ${{ secrets.GoogleClientId }} -google-clientsecret ${{ secrets.GoogleClientSecret }}
 

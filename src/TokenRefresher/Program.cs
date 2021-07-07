@@ -11,7 +11,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using TokenRefresher.Models;
+using TokenRefresher.Models.Google;
+using TokenRefresher.Models.Meetup;
 
 namespace TokenRefresher
 {
@@ -24,7 +25,13 @@ namespace TokenRefresher
         MeetupApiKey,
 
         [Parameter("meetup-apisecret")]
-        MeetupApiSecret
+        MeetupApiSecret,
+
+        [Parameter("google-clientid")]
+        GoogleClientId,
+
+        [Parameter("google-clientsecret")]
+        GoogleClientSecret
     }
 
     class Program
@@ -32,6 +39,7 @@ namespace TokenRefresher
 
         public static HttpClient HttpClient { get; set; } = new HttpClient();
         const long REPOSITORY_ID = 382245667;
+        const string FOLDER_PATH = "refresh-tokens";
 
         static readonly JsonSerializerOptions _jsonOptions = new()
         {
@@ -52,7 +60,25 @@ namespace TokenRefresher
 
             IGitHubService gitHubService = new GitHubService(githubClient);
 
-            await RefreshTokenMeetupAsync(gitHubService, actionContext);
+
+            try
+            {
+                await RefreshTokenMeetupAsync(gitHubService, actionContext);
+            }
+            finally
+            {
+
+            }
+
+            try
+            {
+                await RefreshTokenGoogleAsync(gitHubService, actionContext);
+            }
+            finally
+            {
+            }
+
+            
 
             Console.WriteLine("Finish");
         }
@@ -64,13 +90,12 @@ namespace TokenRefresher
             string meetupApiKey = actionContext.GetParameter(Parameters.MeetupApiKey);
             string meetupApiSecret = actionContext.GetParameter(Parameters.MeetupApiSecret);
 
-            string path = "refresh-tokens";
             string fileName = "meetup.json";
 
-            var file = await gitHubService.GetFileContentAsync(REPOSITORY_ID, path, fileName);
+            var file = await gitHubService.GetFileContentAsync(REPOSITORY_ID, FOLDER_PATH, fileName);
 
 
-            Token token = JsonSerializer.Deserialize<Token>(file.Content, _jsonOptions);
+            MeetupToken token = JsonSerializer.Deserialize<MeetupToken>(file.Content, _jsonOptions);
 
             Console.WriteLine("Get Token Successfully");
 
@@ -89,14 +114,58 @@ namespace TokenRefresher
             var response = await HttpClient.SendAsync(request);
 
 
-            token = await response.Content.ReadFromJsonAsync<Token>();
+            token = await response.Content.ReadFromJsonAsync<MeetupToken>();
 
             Console.WriteLine("Refresh Token Successfully");
 
 
-            await gitHubService.UpdateFileAsync(REPOSITORY_ID, path, fileName, JsonSerializer.Serialize(token, _jsonOptions));
+            await gitHubService.UpdateFileAsync(REPOSITORY_ID, FOLDER_PATH, fileName, JsonSerializer.Serialize(token, _jsonOptions));
 
             Console.WriteLine("Updated Token in meetup.json Successfully");
+
+
+        }
+
+        static async Task RefreshTokenGoogleAsync(IGitHubService gitHubService, GitHubActionContext actionContext)
+        {
+            Console.WriteLine("Refresh Token Google");
+
+            string googleClientId = actionContext.GetParameter(Parameters.GoogleClientId);
+            string googleClientSecret = actionContext.GetParameter(Parameters.GoogleClientSecret);
+
+            string fileName = "google.json";
+
+            var file = await gitHubService.GetFileContentAsync(REPOSITORY_ID, FOLDER_PATH, fileName);
+
+
+            GoogleToken token = JsonSerializer.Deserialize<GoogleToken>(file.Content, _jsonOptions);
+
+            Console.WriteLine("Get Token Successfully");
+
+            HttpClient.BaseAddress = new Uri("https://oauth2.googleapis.com");
+            var request = new HttpRequestMessage(HttpMethod.Post, "/token");
+
+            var keyValues = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("client_id", googleClientId),
+                new KeyValuePair<string, string>("client_secret", googleClientSecret),
+                new KeyValuePair<string, string>("grant_type", "refresh_token"),
+                new KeyValuePair<string, string>("refresh_token", token.RefreshToken)
+            };
+
+            request.Content = new FormUrlEncodedContent(keyValues);
+            var response = await HttpClient.SendAsync(request);
+
+
+            GoogleToken newToken = await response.Content.ReadFromJsonAsync<GoogleToken>();
+            newToken.RefreshToken = token.RefreshToken;
+
+            Console.WriteLine("Refresh Token Successfully");
+
+
+            await gitHubService.UpdateFileAsync(REPOSITORY_ID, FOLDER_PATH, fileName, JsonSerializer.Serialize(newToken, _jsonOptions));
+
+            Console.WriteLine("Updated Token in google.json Successfully");
 
 
         }

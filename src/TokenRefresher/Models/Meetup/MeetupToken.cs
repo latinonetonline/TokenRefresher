@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TokenRefresher.Models
+namespace TokenRefresher.Models.Meetup
 {
-    class Token
+    class MeetupToken
     {
         [JsonPropertyName("access_token")]
         public string AccessToken { get; set; }
